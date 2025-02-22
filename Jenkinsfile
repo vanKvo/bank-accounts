@@ -1,14 +1,14 @@
 pipeline {
     agent any 
     stages {
-        stage('Hello accounts-v4 Feb 22') {
+        stage('Hello accounts main Feb 22') {
             steps {
                 echo "Hello from Jenskinfile"
             }
         }
         stage('For the fix branch') {
             when {
-            	branch "fix-*"
+            	branch "bank-*"
             }
             steps {
                 sh '''
