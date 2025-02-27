@@ -1,28 +1,65 @@
 pipeline {
-    agent any 
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "dolphin2002/accounts:main"
+        DOCKER_HUB_CREDENTIALS_ID = "dockerhub-token"
+    }
+
     stages {
-        stage('Hello accounts main Feb 22') {
+        stage('Checkout') {
             steps {
-                echo "Hello from Jenskinfile"
+                git branch: 'main', url: 'https://github.com/vanKvo/bank-accounts.git'
             }
         }
-        stage('For the fix branch') {
-            when {
-            	branch "bank-*"
-            }
+
+        stage('Build & Test') {
             steps {
-                sh '''
-                	cat README.md
-                '''
+                script {
+                    // If using Maven, compile, test, and package the code.
+                    sh 'mvn clean package'
+                }
             }
         }
-        stage('For the PR') {
-            when {
-            	branch "PR-*"
-            }
+
+        stage('Build Docker Image') {
             steps {
-                echo 'For Pull request only'
+                script {
+                    //sh "docker build -t ${DOCKER_IMAGE}:latest ."
+                    sh 'mvn compile jib:dockerBuild'
+                }
             }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    withDockerRegistry([credentialsId: DOCKER_HUB_CREDENTIALS_ID, url: ""]) {
+                        sh "docker push ${DOCKER_IMAGE}:main"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    sh """
+                    docker stop accounts-main-container || true
+                    docker rm accounts-main-container || true
+                    docker run -d --name accounts-main-container -p 8081:8081 ${DOCKER_IMAGE}:latest
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment successful!"
+        }
+        failure {
+            echo "Pipeline failed!"
         }
     }
 }
