@@ -4,16 +4,19 @@ pipeline {
     environment {
         DOCKER_IMAGE = "dolphin2002/accounts:main"
         DOCKER_HUB_CREDENTIALS_ID = "dockerhub-token"
+        GIT_CREDENTIALS_ID = "jenkins-github"
+        GIT_REPO = "https://github.com/vanKvo/bank-accounts.git"
+        GIT_BRANCH = "main"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/vanKvo/bank-accounts.git'
+                git branch: GIT_BRANCH, credentialsId: GIT_CREDENTIALS_ID, url: GIT_URL
             }
         }
 
-        stage('Build & Test') {
+        stage('Build') {
             steps {
                 script {
                     // If using Maven, compile, test, and package the code.
@@ -21,6 +24,21 @@ pipeline {
                 }
             }
         }
+
+        stage('Test') {
+            steps {
+                script {
+                    // Verify test results
+                    sh 'mvn test'
+                }
+                post {
+                    always {
+                        junit 'target/accounts-tests-reports/*.xml'
+                    }
+                }
+            }
+        }
+
 
         stage('Build Docker Image') {
             steps {

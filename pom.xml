@@ -86,7 +86,7 @@
 				<version>3.4.2</version>
 				<configuration>
 					<to>
-						<image>dolphin2002/${project.artifactId}:s6</image>
+						<image>dolphin2002/${project.artifactId}:main</image>
 					</to>
 				</configuration>
 			</plugin>
