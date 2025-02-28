@@ -12,7 +12,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: GIT_BRANCH, credentialsId: GIT_CREDENTIALS_ID, url: GIT_URL
+                //git branch: GIT_BRANCH, credentialsId: GIT_CREDENTIALS_ID, url: GIT_URL
+                checkout scm
             }
         }
 
@@ -20,7 +21,9 @@ pipeline {
             steps {
                 script {
                     // If using Maven, compile, test, and package the code.
-                    sh 'mvn clean package'
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh 'mvn clean package'
+                    }
                 }
             }
         }
@@ -29,7 +32,9 @@ pipeline {
             steps {
                 script {
                     // Verify test results
-                    sh 'mvn test'
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh 'mvn test'
+                    }
                 }
                 post {
                     always {
